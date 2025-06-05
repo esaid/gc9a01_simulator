@@ -18,6 +18,7 @@ class SimulatedGC9A01:
         self.text_color = (255, 255, 255)
         self.text_size = 1
         self.font = self.load_font()
+        self.rotation = 0
 
     def load_font(self):
         try:
