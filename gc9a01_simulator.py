@@ -2,6 +2,9 @@ import math
 from PIL import Image, ImageDraw, ImageFont, ImageTk
 import tkinter as tk
 from tkinter import Canvas
+from font5x7 import font
+from gc9a01_constants import *
+
 
 
 class SimulatedGC9A01:
@@ -17,7 +20,7 @@ class SimulatedGC9A01:
         self.cursor_y = 0
         self.text_color = (255, 255, 255)
         self.text_size = 1
-        self.font = self.load_font()
+        # self.font = self.load_font()
 
     def load_font(self):
         try:
@@ -60,20 +63,54 @@ class SimulatedGC9A01:
     def setTextSize(self, size):
         self.text_size = max(1, size)
 
-    def printText(self, text):
-        text = str(text)  # Convertir le texte en une chaîne de caractères
+    def drawBitmapChar(self, x, y, char, color, size=1):
+        """Dessine un caractère bitmap à partir de la police 5x7"""
+        if char not in font:
+            char = ' '  # Caractère par défaut si non trouvé
 
+        bitmap = font[char]
+
+        for col in range(5):  # 5 colonnes
+            column_data = bitmap[col]
+            for row in range(8):  # 8 bits par colonne
+                if column_data & (1 << row):  # Si le bit est à 1
+                    # Dessiner le pixel (ou un carré si size > 1)
+                    for sx in range(size):
+                        for sy in range(size):
+                            px = x + col * size + sx
+                            py = y + row * size + sy
+                            if 0 <= px < self.width and 0 <= py < self.height:
+                                self.drawPixel(px, py, color)
+
+    def printText(self, text , use_bitmap = True):
+        text = str(text)  # Convertir le texte en une chaîne de caractères
+        if use_bitmap:
+            for char in text:
+                if char == '\n':
+                    self.cursor_y += 8 * self.text_size
+                    self.cursor_x = 0
+                else:
+                    self.drawBitmapChar(self.cursor_x, self.cursor_y, char,
+                                        self.text_color, self.text_size)
+                    self.cursor_x += 6 * self.text_size  # 5 pixels + 1 espace
+        else:
+            # Utiliser PIL pour comparaison
+            self.draw.text((self.cursor_x, self.cursor_y), text,
+                           fill=self.text_color)
+        '''
         if self.text_size == 1:
             font = self.font
         else:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 8 * self.text_size)
+            font = ImageFont.load_default(8)
+        
+        
 
         for c in text:
             self.draw.text((self.cursor_x, self.cursor_y), c, font=font, fill=self.text_color)
             self.cursor_x += self.text_size * 6  # Ajuster selon la largeur du caractère
-
-    def println(self, text=""):
-        self.printText(text)
+        '''
+    def println(self, text="" , use_bitmap=True):
+        self.printText(text ,use_bitmap)
         line_height = 8 * self.text_size
         self.setCursor(0, self.cursor_y + line_height)
 
@@ -155,8 +192,9 @@ class SimulatedGC9A01:
             return self.width - x - 1, self.height - y - 1
         elif self.rotation == 3:
             return y, self.width - x - 1
+        return None
 
-    def update_display(self):
+    def update_display(self, padding =20):
         if self.canvas is None:
             raise RuntimeError("Canvas not initialized. Call renderToTk(tk_root) first.")
 
@@ -166,20 +204,26 @@ class SimulatedGC9A01:
         circ_image.paste(self.image, (0, 0), mask=mask)
 
         self.tk_img = ImageTk.PhotoImage(circ_image)
-        self.canvas.create_image(0, 0, anchor="nw", image=self.tk_img)
+        self.canvas.create_image(padding, padding, anchor="nw", image=self.tk_img)
         self.canvas.image = self.tk_img  # Conserver la référence
 
-    def renderToTk(self, tk_root):
+    def renderToTk(self, tk_root, padding=20):
+
         # Appliquer masque circulaire
         mask = self.create_circular_mask(self.width)
         circ_image = Image.new("RGBA", (self.width, self.height))
         circ_image.paste(self.image, (0, 0), mask=mask)
+        canvas_width = self.width + 2 * padding
+        canvas_height = self.height + 2 * padding
+        # Créer un frame pour contenir le canvas
+        frame = tk.Frame(tk_root)
+        frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
-        self.canvas = tk.Canvas(tk_root, width=self.width, height=self.height)
-        self.canvas.pack()
+        self.canvas = tk.Canvas(frame, width=canvas_width, height=canvas_height,bg='lightgray', highlightthickness=0)
+        self.canvas.pack(anchor=tk.CENTER)
 
         self.tk_img = ImageTk.PhotoImage(circ_image)
-        self.canvas.create_image(0, 0, anchor="nw", image=self.tk_img)
+        self.canvas.create_image(padding, padding, anchor="nw", image=self.tk_img)
 
         # Conserver la référence pour éviter le garbage collection
         self.canvas.image = self.tk_img
@@ -196,9 +240,12 @@ if __name__ == "__main__":
     sim.drawCircle(120, 120, 100, GC9A01A_YELLOW)
     sim.fillCircle(120, 120, 90, GC9A01A_RED)
     sim.setTextColor(GC9A01A_WHITE)
-    sim.setCursor(50, 110)
+    sim.setCursor(0, 0)
     sim.printText("Hello GC9A01!")
+    sim.renderToTk(root)
+    root.mainloop()
 
+    '''
     photo = sim.renderToTk(root)
 
     canvas = Canvas(root, width=sim.width, height=sim.height)
@@ -208,3 +255,5 @@ if __name__ == "__main__":
     canvas.image = photo  # <-- ✅ Ajoute cette ligne pour garder une référence à l'image
 
     root.mainloop()
+    '''
+

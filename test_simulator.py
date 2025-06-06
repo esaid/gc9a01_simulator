@@ -11,17 +11,16 @@ def step_text():
 
 
     tft.fillScreen(GC9A01A_BLACK)
-    tft.setCursor(0, 0)
-    tft.setTextColor(GC9A01A_WHITE)
+    tft.setCursor(50, 20)
+    tft.setTextColor((255, 255, 255))
     tft.setTextSize(1)
     tft.println("Hello World!")
     tft.println("Texte")
-    tft.println(1234.56)
-    tft.println(True)
     tft.setTextColor(GC9A01A_YELLOW)
     tft.setTextSize(2)
     tft.println(1234.56)
     tft.setTextColor(GC9A01A_RED)
+    tft.update_display()
 
     tft.println()
     tft.setTextColor(GC9A01A_GREEN)
@@ -37,7 +36,8 @@ def step_text():
     tft.println("in the gobberwarts")
     tft.println("with my blurglecruncheon,")
     tft.println("see if I don't!")
-    root.after(2000, step_anim)
+    tft.update_display()
+    root.after(6000, step_anim)
 
 
 
