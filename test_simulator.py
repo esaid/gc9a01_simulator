@@ -130,8 +130,10 @@ def rotation():
     tft.update_display()
 
 
-# Démarre l'enchaînement
-run_animation(testRotation)
+# test rotation et boucle
+# run_animation(testRotation)
+
+step_text()
 
 # Lancer la boucle Tkinter
 root.mainloop()
