@@ -6,6 +6,7 @@ from font5x7 import font
 from gc9a01_constants import *
 
 
+
 class SimulatedGC9A01:
     def __init__(self, width=240, height=240):
         self.tk_root = None
@@ -19,7 +20,7 @@ class SimulatedGC9A01:
         self.cursor_y = 0
         self.text_color = (255, 255, 255)
         self.text_size = 1
-        self.rotation = 0  # 0-3 comme dans l'API réelle
+
 
     def load_font(self):
         try:
@@ -36,6 +37,8 @@ class SimulatedGC9A01:
         g8 = int((g * 255) / 63)
         b8 = int((b * 255) / 31)
         return (r8, g8, b8)
+
+
 
     def setCursor(self, x, y):
         r = self.width // 2
@@ -79,7 +82,7 @@ class SimulatedGC9A01:
                             if 0 <= px < self.width and 0 <= py < self.height:
                                 self.drawPixel(px, py, color)
 
-    def printText(self, text, use_bitmap=True):
+    def printText(self, text , use_bitmap = True):
         text = str(text)  # Convertir le texte en une chaîne de caractères
         if use_bitmap:
             for char in text:
@@ -99,16 +102,15 @@ class SimulatedGC9A01:
             font = self.font
         else:
             font = ImageFont.load_default(8)
-
-
+        
+        
 
         for c in text:
             self.draw.text((self.cursor_x, self.cursor_y), c, font=font, fill=self.text_color)
             self.cursor_x += self.text_size * 6  # Ajuster selon la largeur du caractère
         '''
-
-    def println(self, text="", use_bitmap=True):
-        self.printText(text, use_bitmap)
+    def println(self, text="" , use_bitmap=True):
+        self.printText(text ,use_bitmap)
         line_height = 8 * self.text_size
         self.setCursor(0, self.cursor_y + line_height)
 
@@ -178,64 +180,9 @@ class SimulatedGC9A01:
         draw.ellipse((0, 0, size, size), fill=255)  # cercle blanc (zone visible)
         return mask
 
-    def setRotation(self, rotation):
-        """Définit la rotation de l'affichage (0-3)"""
-        self.rotation = rotation % 4  # S'assure que la rotation est entre 0 et 3
 
-    def update_display(self, padding=20):
-        if self.canvas is None:
-            raise RuntimeError("Canvas not initialized. Call renderToTk(tk_root) first.")
 
-        # Appliquer le masque circulaire
-        mask = self.create_circular_mask(self.width)
-        circ_image = Image.new("RGBA", (self.width, self.height))
-        circ_image.paste(self.image, (0, 0), mask=mask)
-
-        # Appliquer la rotation en fonction de self.rotation
-        if self.rotation == 1:
-            rotated_img = circ_image.transpose(Image.ROTATE_270)
-        elif self.rotation == 2:
-            rotated_img = circ_image.transpose(Image.ROTATE_180)
-        elif self.rotation == 3:
-            rotated_img = circ_image.transpose(Image.ROTATE_90)
-        else:
-            rotated_img = circ_image
-
-        self.tk_img = ImageTk.PhotoImage(rotated_img)
-        self.canvas.create_image(padding, padding, anchor="nw", image=self.tk_img)
-        self.canvas.image = self.tk_img  # Conserver la référence
-
-    def renderToTk(self, tk_root, padding=20):
-        # Appliquer masque circulaire
-        mask = self.create_circular_mask(self.width)
-        circ_image = Image.new("RGBA", (self.width, self.height))
-        circ_image.paste(self.image, (0, 0), mask=mask)
-
-        # Appliquer la rotation initiale
-        if self.rotation == 1:
-            circ_image = circ_image.transpose(Image.ROTATE_90)
-        elif self.rotation == 2:
-            circ_image = circ_image.transpose(Image.ROTATE_180)
-        elif self.rotation == 3:
-            circ_image = circ_image.transpose(Image.ROTATE_270)
-
-        canvas_width = self.width + 2 * padding
-        canvas_height = self.height + 2 * padding
-
-        # Créer un frame pour contenir le canvas
-        frame = tk.Frame(tk_root)
-        frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-        self.canvas = tk.Canvas(frame, width=canvas_width, height=canvas_height, bg='lightgray', highlightthickness=0)
-        self.canvas.pack(anchor=tk.CENTER)
-
-        self.tk_img = ImageTk.PhotoImage(circ_image)
-        self.canvas.create_image(padding, padding, anchor="nw", image=self.tk_img)
-
-        # Conserver la référence pour éviter le garbage collection
-        self.canvas.image = self.tk_img
-
-    def update_display_old(self, padding=20):
+    def update_display(self, padding =20):
         if self.canvas is None:
             raise RuntimeError("Canvas not initialized. Call renderToTk(tk_root) first.")
 
@@ -248,7 +195,7 @@ class SimulatedGC9A01:
         self.canvas.create_image(padding, padding, anchor="nw", image=self.tk_img)
         self.canvas.image = self.tk_img  # Conserver la référence
 
-    def renderToTk_old(self, tk_root, padding=20):
+    def renderToTk(self, tk_root, padding=20):
 
         # Appliquer masque circulaire
         mask = self.create_circular_mask(self.width)
@@ -260,7 +207,7 @@ class SimulatedGC9A01:
         frame = tk.Frame(tk_root)
         frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
-        self.canvas = tk.Canvas(frame, width=canvas_width, height=canvas_height, bg='lightgray', highlightthickness=0)
+        self.canvas = tk.Canvas(frame, width=canvas_width, height=canvas_height,bg='lightgray', highlightthickness=0)
         self.canvas.pack(anchor=tk.CENTER)
 
         self.tk_img = ImageTk.PhotoImage(circ_image)
@@ -297,3 +244,4 @@ if __name__ == "__main__":
 
     root.mainloop()
     '''
+

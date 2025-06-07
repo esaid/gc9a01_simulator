@@ -1,3 +1,4 @@
+import time
 import tkinter as tk
 from gc9a01_simulator import SimulatedGC9A01
 from gc9a01_constants import *
@@ -6,6 +7,38 @@ root = tk.Tk()  # Crée la fenêtre principale
 
 tft = SimulatedGC9A01()
 tft.renderToTk(root)  # Initialise le canvas et l'affichage
+
+def testRotation():
+    for rot in range(4):
+        tft.fillScreen(GC9A01A_PURPLE)
+        tft.drawLine(0, 120, 240, 120, GC9A01A_BLACK);
+        tft.setRotation(rot)
+        tft.setCursor(40, 30)
+        tft.setTextColor(GC9A01A_WHITE)
+        tft.setTextSize(1)
+        tft.println(" Hello\n      World!")
+        # tft.println(" Hello")
+        tft.update_display()
+        yield 1000
+
+
+def run_animation(sequence_func):
+    gen = sequence_func()  # Prépare l'animation
+
+    def next_step():
+        try:
+            # Exécute jusqu'au prochain yield et récupère le délai
+            pause_ms = next(gen)
+
+            # Programme la suite après la pause
+            root.after(pause_ms, next_step)
+        except StopIteration:
+            # Si fin atteinte, on recommence
+            run_animation(sequence_func)
+
+    next_step()  # Démarre la machine
+
+
 
 def step_text():
 
@@ -98,7 +131,7 @@ def rotation():
 
 
 # Démarre l'enchaînement
-step_text()
+run_animation(testRotation)
 
 # Lancer la boucle Tkinter
 root.mainloop()
