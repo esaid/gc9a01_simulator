@@ -10,6 +10,7 @@ class SimulatedGC9A01:
     def __init__(self, width=240, height=240):
         self.tk_root = None
         self.canvas = None
+        self.canvas_image_id = None
         self.tk_img = None
         self.width = width
         self.height = height
@@ -20,6 +21,7 @@ class SimulatedGC9A01:
         self.text_color = (255, 255, 255)
         self.text_size = 1
         self.rotation = 0  # 0-3 comme dans l'API réelle
+        self.font = self.load_font()
 
     def load_font(self):
         try:
@@ -94,18 +96,7 @@ class SimulatedGC9A01:
             # Utiliser PIL pour comparaison
             self.draw.text((self.cursor_x, self.cursor_y), text,
                            fill=self.text_color)
-        '''
-        if self.text_size == 1:
-            font = self.font
-        else:
-            font = ImageFont.load_default(8)
-
-
-
-        for c in text:
-            self.draw.text((self.cursor_x, self.cursor_y), c, font=font, fill=self.text_color)
-            self.cursor_x += self.text_size * 6  # Ajuster selon la largeur du caractère
-        '''
+        
 
     def println(self, text="", use_bitmap=True):
         self.printText(text, use_bitmap)
@@ -178,6 +169,16 @@ class SimulatedGC9A01:
         draw.ellipse((0, 0, size, size), fill=255)  # cercle blanc (zone visible)
         return mask
 
+    def _apply_rotation(self, image):
+        """Applique la rotation de l'affichage (0-3)"""
+        if self.rotation == 1:
+            return image.transpose(Image.ROTATE_270)
+        elif self.rotation == 2:
+            return image.transpose(Image.ROTATE_180)
+        elif self.rotation == 3:
+            return image.transpose(Image.ROTATE_90)
+        return image
+
     def setRotation(self, rotation):
         """Définit la rotation de l'affichage (0-3)"""
         self.rotation = rotation % 4  # S'assure que la rotation est entre 0 et 3
@@ -192,17 +193,14 @@ class SimulatedGC9A01:
         circ_image.paste(self.image, (0, 0), mask=mask)
 
         # Appliquer la rotation en fonction de self.rotation
-        if self.rotation == 1:
-            rotated_img = circ_image.transpose(Image.ROTATE_270)
-        elif self.rotation == 2:
-            rotated_img = circ_image.transpose(Image.ROTATE_180)
-        elif self.rotation == 3:
-            rotated_img = circ_image.transpose(Image.ROTATE_90)
-        else:
-            rotated_img = circ_image
+        rotated_img = self._apply_rotation(circ_image)
+
 
         self.tk_img = ImageTk.PhotoImage(rotated_img)
-        self.canvas.create_image(padding, padding, anchor="nw", image=self.tk_img)
+        if self.canvas_image_id:
+            self.canvas.itemconfig(self.canvas_image_id, image=self.tk_img)
+        else:
+            self.canvas_image_id = self.canvas.create_image(padding, padding, anchor="nw", image=self.tk_img)
         self.canvas.image = self.tk_img  # Conserver la référence
 
     def renderToTk(self, tk_root, padding=20):
@@ -212,12 +210,8 @@ class SimulatedGC9A01:
         circ_image.paste(self.image, (0, 0), mask=mask)
 
         # Appliquer la rotation initiale
-        if self.rotation == 1:
-            circ_image = circ_image.transpose(Image.ROTATE_90)
-        elif self.rotation == 2:
-            circ_image = circ_image.transpose(Image.ROTATE_180)
-        elif self.rotation == 3:
-            circ_image = circ_image.transpose(Image.ROTATE_270)
+        circ_image = self._apply_rotation(circ_image)
+
 
         canvas_width = self.width + 2 * padding
         canvas_height = self.height + 2 * padding
@@ -230,44 +224,12 @@ class SimulatedGC9A01:
         self.canvas.pack(anchor=tk.CENTER)
 
         self.tk_img = ImageTk.PhotoImage(circ_image)
-        self.canvas.create_image(padding, padding, anchor="nw", image=self.tk_img)
+        self.canvas_image_id = self.canvas.create_image(padding, padding, anchor="nw", image=self.tk_img)
+
 
         # Conserver la référence pour éviter le garbage collection
         self.canvas.image = self.tk_img
 
-    def update_display_old(self, padding=20):
-        if self.canvas is None:
-            raise RuntimeError("Canvas not initialized. Call renderToTk(tk_root) first.")
-
-        # Appliquer le masque circulaire à nouveau
-        mask = self.create_circular_mask(self.width)
-        circ_image = Image.new("RGBA", (self.width, self.height))
-        circ_image.paste(self.image, (0, 0), mask=mask)
-
-        self.tk_img = ImageTk.PhotoImage(circ_image)
-        self.canvas.create_image(padding, padding, anchor="nw", image=self.tk_img)
-        self.canvas.image = self.tk_img  # Conserver la référence
-
-    def renderToTk_old(self, tk_root, padding=20):
-
-        # Appliquer masque circulaire
-        mask = self.create_circular_mask(self.width)
-        circ_image = Image.new("RGBA", (self.width, self.height))
-        circ_image.paste(self.image, (0, 0), mask=mask)
-        canvas_width = self.width + 2 * padding
-        canvas_height = self.height + 2 * padding
-        # Créer un frame pour contenir le canvas
-        frame = tk.Frame(tk_root)
-        frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-        self.canvas = tk.Canvas(frame, width=canvas_width, height=canvas_height, bg='lightgray', highlightthickness=0)
-        self.canvas.pack(anchor=tk.CENTER)
-
-        self.tk_img = ImageTk.PhotoImage(circ_image)
-        self.canvas.create_image(padding, padding, anchor="nw", image=self.tk_img)
-
-        # Conserver la référence pour éviter le garbage collection
-        self.canvas.image = self.tk_img
 
 
 # Exemple d'utilisation dans une fenêtre Tkinter
@@ -283,17 +245,7 @@ if __name__ == "__main__":
     sim.setTextColor(GC9A01A_WHITE)
     sim.setCursor(0, 0)
     sim.printText("Hello GC9A01!")
+    sim.println("Test ! @ # $ % ^ & * ( ) - _ = + [ ] { } | ; : . ? , < > ")
     sim.renderToTk(root)
     root.mainloop()
 
-    '''
-    photo = sim.renderToTk(root)
-
-    canvas = Canvas(root, width=sim.width, height=sim.height)
-    canvas.pack()
-    canvas.create_image(0, 0, anchor="nw", image=photo)
-
-    canvas.image = photo  # <-- ✅ Ajoute cette ligne pour garder une référence à l'image
-
-    root.mainloop()
-    '''

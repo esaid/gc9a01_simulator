@@ -97,18 +97,8 @@ class SimulatedGC9A01:
             # Utiliser PIL pour comparaison
             self.draw.text((self.cursor_x, self.cursor_y), text,
                            fill=self.text_color)
-        '''
-        if self.text_size == 1:
-            font = self.font
-        else:
-            font = ImageFont.load_default(8)
-        
-        
 
-        for c in text:
-            self.draw.text((self.cursor_x, self.cursor_y), c, font=font, fill=self.text_color)
-            self.cursor_x += self.text_size * 6  # Ajuster selon la largeur du caractère
-        '''
+
     def println(self, text="" , use_bitmap=True):
         self.printText(text ,use_bitmap)
         line_height = 8 * self.text_size
