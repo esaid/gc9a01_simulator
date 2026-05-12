@@ -95,6 +95,31 @@ def step_anim():
     tft.fillCircle(180, 140, 20, (255, 255, 0))
     tft.drawLine(10, 200, 230, 200, (255, 255, 255))
     tft.update_display()
+    root.after(2000, step_shapes)
+
+
+def step_shapes():
+    tft.fillScreen(GC9A01A_BLACK)
+
+    # Test Rectangles
+    tft.drawRect(20, 20, 50, 50, GC9A01A_WHITE)
+    tft.fillRect(80, 20, 50, 50, GC9A01A_RED)
+
+    # Test Rounded Rectangles
+    tft.drawRoundRect(20, 80, 50, 50, 10, GC9A01A_GREEN)
+    tft.fillRoundRect(80, 80, 50, 50, 10, GC9A01A_BLUE)
+
+    # Test Circles & Ellipses
+    tft.drawCircle(60, 160, 30, GC9A01A_YELLOW)
+    tft.fillCircle(140, 160, 30, (255, 0, 255))
+    tft.drawEllipse(120, 120, 40, 20, GC9A01A_WHITE)
+    tft.fillEllipse(120, 120, 30, 15, GC9A01A_RED)
+
+    # Test Polyline
+    tft.drawPolyline([(120, 120), (150, 100), (180, 120), (150, 140), (120, 120)], GC9A01A_WHITE)
+
+    tft.drawLine(20, 210, 220, 210, GC9A01A_WHITE)
+    tft.update_display()
     root.after(2000, step_black)
 
 def step_black():

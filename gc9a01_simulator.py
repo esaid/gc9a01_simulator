@@ -138,6 +138,22 @@ class SimulatedGC9A01:
             color = self.color565_to_rgb(color)
         self.draw.ellipse([x - r, y - r, x + r, y + r], fill=color)
 
+    def drawEllipse(self, x, y, rx, ry, color):
+        if isinstance(color, int):
+            color = self.color565_to_rgb(color)
+        self.draw.ellipse([x - rx, y - ry, x + rx, y + ry], outline=color)
+
+    def fillEllipse(self, x, y, rx, ry, color):
+        if isinstance(color, int):
+            color = self.color565_to_rgb(color)
+        self.draw.ellipse([x - rx, y - ry, x + rx, y + ry], fill=color)
+
+    def drawPolyline(self, points, color):
+        if isinstance(color, int):
+            color = self.color565_to_rgb(color)
+        for i in range(len(points) - 1):
+            self.drawLine(points[i][0], points[i][1], points[i+1][0], points[i+1][1], color)
+
     def drawRoundRect(self, x, y, w, h, r, color):
         if isinstance(color, int):
             color = self.color565_to_rgb(color)
@@ -157,6 +173,25 @@ class SimulatedGC9A01:
         self.draw.pieslice([x + w - 2 * r, y, x + w, y + 2 * r], 270, 360, fill=color)
         self.draw.pieslice([x, y + h - 2 * r, x + 2 * r, y + h], 90, 180, fill=color)
         self.draw.pieslice([x + w - 2 * r, y + h - 2 * r, x + w, y + h], 0, 90, fill=color)
+
+    def drawBitmap(self, x, y, w, h, bitmap, color):
+        """Dessine un bitmap monochrome
+        bitmap: Liste d'entiers où chaque entier est une ligne de pixels (bit=1 -> couleur, bit=0 -> transparent)
+        """
+        if isinstance(color, int):
+            color = self.color565_to_rgb(color)
+
+        for row in range(h):
+            if row >= len(bitmap):
+                break
+            row_data = bitmap[row]
+            for col in range(w):
+                # Vérifier si le bit correspondant à la colonne est à 1
+                if row_data & (1 << col):
+                    px = x + col
+                    py = y + row
+                    if 0 <= px < self.width and 0 <= py < self.height:
+                        self.drawPixel(px, py, color)
 
     def drawChar(self, x, y, c, color=None):
         if color is None:
